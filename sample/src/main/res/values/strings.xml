@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Image Uploader Sample</string>
+    <string name="take_photo">Upload Photo</string>
+    <string name="cancel_upload">Cancel Upload</string>
+</resources>
