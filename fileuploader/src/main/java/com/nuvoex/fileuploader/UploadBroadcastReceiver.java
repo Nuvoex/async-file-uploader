@@ -1,0 +1,47 @@
+package com.nuvoex.fileuploader;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+
+import com.nuvoex.fileuploader.utils.Consts;
+
+/**
+ * Created by dilip on 11/01/17.
+ */
+
+public abstract class UploadBroadcastReceiver extends BroadcastReceiver {
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (intent == null || !intent.hasExtra(Consts.Keys.EXTRA_UPLOAD_STATUS) || !intent.hasExtra(Intent.EXTRA_UID)) {
+            return;
+        }
+
+        String uploadId = intent.getStringExtra(Intent.EXTRA_UID);
+
+        switch (intent.getIntExtra(Consts.Keys.EXTRA_UPLOAD_STATUS, 0)) {
+            case Consts.Status.STARTED:
+                onStart(context, uploadId, intent.getExtras());
+                break;
+            case Consts.Status.FAILED:
+                onFail(context, uploadId, intent.getExtras());
+                break;
+            case Consts.Status.COMPLETED:
+                onComplete(context, uploadId, intent.getExtras());
+                break;
+            case Consts.Status.CANCELLED:
+                onCancel(context, uploadId, intent.getExtras());
+                break;
+        }
+    }
+
+    public abstract void onStart(Context context, String uploadId, Bundle extras);
+
+    public abstract void onFail(Context context, String uploadId, Bundle extras);
+
+    public abstract void onComplete(Context context, String uploadId, Bundle extras);
+
+    public abstract void onCancel(Context context, String uploadId, Bundle extras);
+}

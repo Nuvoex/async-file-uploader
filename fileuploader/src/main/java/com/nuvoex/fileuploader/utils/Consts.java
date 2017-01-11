@@ -15,5 +15,22 @@ public class Consts {
         public static final String BASE_URL = "https://nuvoex.com";
     }
 
+    public final class Keys {
+        public static final String EXTRA_FILE_PATH = "com.nuvoex.fileuploader.FILE_LOCAL_PATH";
+        public static final String EXTRA_UPLOAD_URL = "com.nuvoex.fileuploader.FILE_UPLOAD_URL";
+        public static final String EXTRA_UPLOAD_STATUS = "com.nuvoex.fileuploader.FILE_UPLOAD_STATUS";
+    }
+
+    public final class Actions {
+        public static final String STATUS_CHANGE = "com.nuvoex.fileuploader.ACTION_STATUS_CHANGE";
+    }
+
+    public final class Status {
+        public static final int STARTED = 1;
+        public static final int FAILED = 2;
+        public static final int COMPLETED = 3;
+        public static final int CANCELLED = 4;
+    }
+
     public static final String TAG = "FILE_UPLOAD";
 }

@@ -1,6 +1,8 @@
 package com.nuvoex.fileuploader;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -11,7 +13,12 @@ import com.nuvoex.fileuploader.network.ApiManager;
 import com.nuvoex.fileuploader.network.ApiService;
 import com.nuvoex.fileuploader.utils.Consts;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import okhttp3.MediaType;
@@ -52,9 +59,9 @@ public class UploadService extends JobService {
         Log.v(Consts.TAG, mRemainingFiles + " files to upload");
 
         for (Map.Entry<String, String> entry : files.entrySet()) {
-            String filePath = entry.getKey();
-            String uploadUrl = entry.getValue();
-            uploadFile(jobParameters, filePath, uploadUrl);
+            String uploadId = entry.getKey();
+            Bundle uploadInfo = parseUploadInfo(entry.getValue());
+            uploadFile(jobParameters, uploadId, uploadInfo);
         }
         return true; //still doing work
     }
@@ -77,7 +84,10 @@ public class UploadService extends JobService {
             mFileWorkerThread.quit();
     }
 
-    private void uploadFile(final JobParameters jobParameters, final String filePath, final String uploadUrl) {
+    private void uploadFile(final JobParameters jobParameters, final String uploadId, final Bundle uploadInfo) {
+        final String filePath = uploadInfo.getString(Consts.Keys.EXTRA_FILE_PATH);
+        final String uploadUrl = uploadInfo.getString(Consts.Keys.EXTRA_UPLOAD_URL);
+
         File file = new File(filePath);
         Log.v(Consts.TAG, "Uploading " + filePath + " (" + file.length() + " bytes)");
 
@@ -86,7 +96,8 @@ public class UploadService extends JobService {
             mPendingUploads--;
             mRemainingFiles--;
             SharedPreferences prefs = getSharedPreferences(Consts.Configs.PREF_NAME, MODE_PRIVATE);
-            prefs.edit().remove(filePath).commit();
+            prefs.edit().remove(uploadId).commit();
+            sendStatusBroadcast(Consts.Status.CANCELLED, uploadId, uploadInfo);
             checkCompletion(jobParameters);
             return;
         }
@@ -105,8 +116,9 @@ public class UploadService extends JobService {
                     Log.v(Consts.TAG, "Success");
                     mPendingUploads--;
                     SharedPreferences prefs = getSharedPreferences(Consts.Configs.PREF_NAME, MODE_PRIVATE);
-                    prefs.edit().remove(filePath).commit();
+                    prefs.edit().remove(uploadId).commit();
                     mFileWorkerThread.postTask(new DeleteFileTask(filePath));
+                    sendStatusBroadcast(Consts.Status.COMPLETED, uploadId, uploadInfo);
                 } else {
                     Log.v(Consts.TAG, "Failure");
                 }
@@ -119,10 +131,12 @@ public class UploadService extends JobService {
                 Log.v(Consts.TAG, filePath);
                 Log.v(Consts.TAG, "Error");
                 Log.v(Consts.TAG, t.toString());
+                sendStatusBroadcast(Consts.Status.FAILED, uploadId, uploadInfo);
                 mRemainingFiles--;
                 checkCompletion(jobParameters);
             }
         });
+        sendStatusBroadcast(Consts.Status.STARTED, uploadId, uploadInfo);
     }
 
     private void checkCompletion(JobParameters jobParameters) {
@@ -139,6 +153,29 @@ public class UploadService extends JobService {
     // returns whether an attempt was made to upload every file at least once
     private boolean isComplete() {
         return mRemainingFiles == 0;
+    }
+
+    private Bundle parseUploadInfo(String uploadInfo) {
+        Bundle bundle = new Bundle();
+        try {
+            JSONObject json = new JSONObject(uploadInfo);
+            Iterator<String> keys = json.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                bundle.putString(key, json.getString(key));
+            }
+        } catch (JSONException e) {
+            Log.e(Consts.TAG, "Upload info parse failed");
+        }
+        return bundle;
+    }
+
+    private void sendStatusBroadcast(int status, String uploadId, Bundle uploadInfo) {
+        Intent intent = new Intent(Consts.Actions.STATUS_CHANGE);
+        intent.putExtra(Intent.EXTRA_UID, uploadId);
+        intent.putExtra(Consts.Keys.EXTRA_UPLOAD_STATUS, status);
+        intent.putExtras(uploadInfo);
+        sendBroadcast(intent);
     }
 
     private class DeleteFileTask implements Runnable {

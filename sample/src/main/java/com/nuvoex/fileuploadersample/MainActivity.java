@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -86,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void scheduleUpload() {
-        UploadQueue.schedule(this, mCurrentPhotoPath, UPLOAD_URL);
+        UploadQueue.schedule(this, "1", mCurrentPhotoPath, UPLOAD_URL, null);
     }
 
     private void cancelUpload() {
