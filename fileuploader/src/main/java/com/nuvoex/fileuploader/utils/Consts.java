@@ -18,6 +18,8 @@ public class Consts {
     public final class Keys {
         public static final String EXTRA_FILE_PATH = "com.nuvoex.fileuploader.FILE_LOCAL_PATH";
         public static final String EXTRA_UPLOAD_URL = "com.nuvoex.fileuploader.FILE_UPLOAD_URL";
+        public static final String EXTRA_DELETE_ON_UPLOAD = "com.nuvoex.fileuploader.DELETE_ON_UPLOAD";
+        public static final String EXTRA_EXTRAS = "com.nuvoex.fileuploader.EXTRAS";
         public static final String EXTRA_UPLOAD_STATUS = "com.nuvoex.fileuploader.FILE_UPLOAD_STATUS";
     }
 

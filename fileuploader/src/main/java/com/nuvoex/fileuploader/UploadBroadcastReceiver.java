@@ -7,6 +7,8 @@ import android.os.Bundle;
 
 import com.nuvoex.fileuploader.utils.Consts;
 
+import java.util.Map;
+
 /**
  * Created by dilip on 11/01/17.
  */
@@ -20,28 +22,29 @@ public abstract class UploadBroadcastReceiver extends BroadcastReceiver {
         }
 
         String uploadId = intent.getStringExtra(Intent.EXTRA_UID);
+        Map<String, String> extras = (Map<String, String>) intent.getSerializableExtra(Consts.Keys.EXTRA_EXTRAS);
 
         switch (intent.getIntExtra(Consts.Keys.EXTRA_UPLOAD_STATUS, 0)) {
             case Consts.Status.STARTED:
-                onStart(context, uploadId, intent.getExtras());
+                onStart(context, uploadId, extras);
                 break;
             case Consts.Status.FAILED:
-                onFail(context, uploadId, intent.getExtras());
+                onFail(context, uploadId, extras);
                 break;
             case Consts.Status.COMPLETED:
-                onComplete(context, uploadId, intent.getExtras());
+                onComplete(context, uploadId, extras);
                 break;
             case Consts.Status.CANCELLED:
-                onCancel(context, uploadId, intent.getExtras());
+                onCancel(context, uploadId, extras);
                 break;
         }
     }
 
-    public abstract void onStart(Context context, String uploadId, Bundle extras);
+    public abstract void onStart(Context context, String uploadId, Map<String, String> extras);
 
-    public abstract void onFail(Context context, String uploadId, Bundle extras);
+    public abstract void onFail(Context context, String uploadId, Map<String, String> extras);
 
-    public abstract void onComplete(Context context, String uploadId, Bundle extras);
+    public abstract void onComplete(Context context, String uploadId, Map<String, String> extras);
 
-    public abstract void onCancel(Context context, String uploadId, Bundle extras);
+    public abstract void onCancel(Context context, String uploadId, Map<String, String> extras);
 }

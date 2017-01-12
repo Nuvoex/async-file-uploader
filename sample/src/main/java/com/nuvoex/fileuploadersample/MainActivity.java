@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import com.nuvoex.fileuploader.UploadInfo;
 import com.nuvoex.fileuploader.UploadQueue;
 
 import java.io.File;
@@ -88,7 +89,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void scheduleUpload() {
-        UploadQueue.schedule(this, "1", mCurrentPhotoPath, UPLOAD_URL, null);
+        Map<String, String> extras = new HashMap<>();
+        extras.put("awb", "10000");
+        UploadInfo info = new UploadInfo()
+                .setUploadId("10000_SBI_3443_pid_344349.png")
+                .setFilePath(mCurrentPhotoPath)
+                .setUploadUrl(UPLOAD_URL)
+                .setDeleteOnUpload(false)
+                .setExtras(extras);
+        UploadQueue.schedule(this, info);
     }
 
     private void cancelUpload() {

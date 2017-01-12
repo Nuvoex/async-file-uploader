@@ -35,18 +35,20 @@ public class UploadQueue {
         return dispatcher;
     }
 
-    public static boolean schedule(Context context, String uploadId, String filePath, String uploadUrl, Map<String, String> extras) {
-        if (extras == null) {
-            extras = new HashMap<>();
-        }
-        extras.put(Consts.Keys.EXTRA_FILE_PATH, filePath);
-        extras.put(Consts.Keys.EXTRA_UPLOAD_URL, uploadUrl);
-        String uploadInfo = writeMapToJson(extras);
+    public static boolean schedule(Context context, UploadInfo uploadInfo) {
         if (uploadInfo == null) {
             return false;
         }
+        if (uploadInfo.getExtras() == null) {
+            uploadInfo.setExtras(new HashMap<String, String>());
+        }
+        String uploadJson = writeInfoToJson(uploadInfo.getFilePath(), uploadInfo.getUploadUrl(),
+                uploadInfo.getDeleteOnUpload(), uploadInfo.getExtras());
+        if (uploadJson == null) {
+            return false;
+        }
         SharedPreferences prefs = context.getSharedPreferences(Consts.Configs.PREF_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putString(uploadId, uploadInfo).commit();
+        prefs.edit().putString(uploadInfo.getUploadId(), uploadJson).commit();
         FirebaseJobDispatcher dispatcher = getDispatcher(context);
         Job job = dispatcher.newJobBuilder()
                 .setService(UploadService.class)
@@ -72,12 +74,17 @@ public class UploadQueue {
         prefs.edit().clear().commit();
     }
 
-    private static String writeMapToJson(Map<String, String> map) {
+    private static String writeInfoToJson(String filePath, String uploadUrl, boolean deleteOnUpload, Map<String, String> map) {
         try {
             JSONObject json = new JSONObject();
+            json.put(Consts.Keys.EXTRA_FILE_PATH, filePath);
+            json.put(Consts.Keys.EXTRA_UPLOAD_URL, uploadUrl);
+            json.put(Consts.Keys.EXTRA_DELETE_ON_UPLOAD, deleteOnUpload);
+            JSONObject extras = new JSONObject();
             for (String key : map.keySet()) {
-                json.put(key, map.get(key));
+                extras.put(key, map.get(key));
             }
+            json.put(Consts.Keys.EXTRA_EXTRAS, extras);
             return json.toString();
         } catch (JSONException e) {
             e.printStackTrace();

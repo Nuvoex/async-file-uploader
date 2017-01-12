@@ -1,12 +1,11 @@
 package com.nuvoex.fileuploadersample;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
 import android.util.Log;
 
 import com.nuvoex.fileuploader.UploadBroadcastReceiver;
+
+import java.util.Map;
 
 /**
  * Created by dilip on 10/01/17.
@@ -14,22 +13,23 @@ import com.nuvoex.fileuploader.UploadBroadcastReceiver;
 
 public class UploadReceiver extends UploadBroadcastReceiver {
     @Override
-    public void onStart(Context context, String uploadId, Bundle extras) {
+    public void onStart(Context context, String uploadId, Map<String, String> extras) {
 
     }
 
     @Override
-    public void onFail(Context context, String uploadId, Bundle extras) {
+    public void onFail(Context context, String uploadId, Map<String, String> extras) {
 
     }
 
     @Override
-    public void onComplete(Context context, String uploadId, Bundle extras) {
-        Log.v("upload test", "Upload with id " + uploadId + " completed successfully");
+    public void onComplete(Context context, String uploadId, Map<String, String> extras) {
+        String awb = extras.get("awb");
+        Log.v("upload test", "Upload with id " + uploadId + " for AWB " + awb + " completed successfully");
     }
 
     @Override
-    public void onCancel(Context context, String uploadId, Bundle extras) {
+    public void onCancel(Context context, String uploadId, Map<String, String> extras) {
 
     }
 }

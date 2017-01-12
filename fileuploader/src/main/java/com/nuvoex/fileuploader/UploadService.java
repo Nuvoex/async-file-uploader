@@ -60,8 +60,8 @@ public class UploadService extends JobService {
 
         for (Map.Entry<String, String> entry : files.entrySet()) {
             String uploadId = entry.getKey();
-            Bundle uploadInfo = parseUploadInfo(entry.getValue());
-            uploadFile(jobParameters, uploadId, uploadInfo);
+            UploadInfo uploadInfo = parseUploadInfo(uploadId, entry.getValue());
+            uploadFile(jobParameters, uploadInfo);
         }
         return true; //still doing work
     }
@@ -84,9 +84,9 @@ public class UploadService extends JobService {
             mFileWorkerThread.quit();
     }
 
-    private void uploadFile(final JobParameters jobParameters, final String uploadId, final Bundle uploadInfo) {
-        final String filePath = uploadInfo.getString(Consts.Keys.EXTRA_FILE_PATH);
-        final String uploadUrl = uploadInfo.getString(Consts.Keys.EXTRA_UPLOAD_URL);
+    private void uploadFile(final JobParameters jobParameters, final UploadInfo uploadInfo) {
+        final String filePath = uploadInfo.getFilePath();
+        final String uploadUrl = uploadInfo.getUploadUrl();
 
         File file = new File(filePath);
         Log.v(Consts.TAG, "Uploading " + filePath + " (" + file.length() + " bytes)");
@@ -96,8 +96,8 @@ public class UploadService extends JobService {
             mPendingUploads--;
             mRemainingFiles--;
             SharedPreferences prefs = getSharedPreferences(Consts.Configs.PREF_NAME, MODE_PRIVATE);
-            prefs.edit().remove(uploadId).commit();
-            sendStatusBroadcast(Consts.Status.CANCELLED, uploadId, uploadInfo);
+            prefs.edit().remove(uploadInfo.getUploadId()).commit();
+            sendStatusBroadcast(Consts.Status.CANCELLED, uploadInfo);
             checkCompletion(jobParameters);
             return;
         }
@@ -116,9 +116,11 @@ public class UploadService extends JobService {
                     Log.v(Consts.TAG, "Success");
                     mPendingUploads--;
                     SharedPreferences prefs = getSharedPreferences(Consts.Configs.PREF_NAME, MODE_PRIVATE);
-                    prefs.edit().remove(uploadId).commit();
-                    mFileWorkerThread.postTask(new DeleteFileTask(filePath));
-                    sendStatusBroadcast(Consts.Status.COMPLETED, uploadId, uploadInfo);
+                    prefs.edit().remove(uploadInfo.getUploadId()).commit();
+                    if (uploadInfo.getDeleteOnUpload()) {
+                        mFileWorkerThread.postTask(new DeleteFileTask(filePath));
+                    }
+                    sendStatusBroadcast(Consts.Status.COMPLETED, uploadInfo);
                 } else {
                     Log.v(Consts.TAG, "Failure");
                 }
@@ -131,12 +133,12 @@ public class UploadService extends JobService {
                 Log.v(Consts.TAG, filePath);
                 Log.v(Consts.TAG, "Error");
                 Log.v(Consts.TAG, t.toString());
-                sendStatusBroadcast(Consts.Status.FAILED, uploadId, uploadInfo);
+                sendStatusBroadcast(Consts.Status.FAILED, uploadInfo);
                 mRemainingFiles--;
                 checkCompletion(jobParameters);
             }
         });
-        sendStatusBroadcast(Consts.Status.STARTED, uploadId, uploadInfo);
+        sendStatusBroadcast(Consts.Status.STARTED, uploadInfo);
     }
 
     private void checkCompletion(JobParameters jobParameters) {
@@ -155,26 +157,33 @@ public class UploadService extends JobService {
         return mRemainingFiles == 0;
     }
 
-    private Bundle parseUploadInfo(String uploadInfo) {
-        Bundle bundle = new Bundle();
+    private UploadInfo parseUploadInfo(String uploadId, String uploadJson) {
+        UploadInfo uploadInfo = new UploadInfo();
         try {
-            JSONObject json = new JSONObject(uploadInfo);
-            Iterator<String> keys = json.keys();
+            JSONObject json = new JSONObject(uploadJson);
+            uploadInfo.setUploadId(uploadId)
+                    .setFilePath(json.getString(Consts.Keys.EXTRA_FILE_PATH))
+                    .setUploadUrl(json.getString(Consts.Keys.EXTRA_UPLOAD_URL))
+                    .setDeleteOnUpload(json.getBoolean(Consts.Keys.EXTRA_DELETE_ON_UPLOAD));
+            Map<String, String> map = new HashMap<>();
+            JSONObject extras = json.getJSONObject(Consts.Keys.EXTRA_EXTRAS);
+            Iterator<String> keys = extras.keys();
             while (keys.hasNext()) {
                 String key = keys.next();
-                bundle.putString(key, json.getString(key));
+                map.put(key, extras.getString(key));
             }
+            uploadInfo.setExtras(map);
         } catch (JSONException e) {
             Log.e(Consts.TAG, "Upload info parse failed");
         }
-        return bundle;
+        return uploadInfo;
     }
 
-    private void sendStatusBroadcast(int status, String uploadId, Bundle uploadInfo) {
+    private void sendStatusBroadcast(int status, UploadInfo uploadInfo) {
         Intent intent = new Intent(Consts.Actions.STATUS_CHANGE);
-        intent.putExtra(Intent.EXTRA_UID, uploadId);
+        intent.putExtra(Intent.EXTRA_UID, uploadInfo.getUploadId());
         intent.putExtra(Consts.Keys.EXTRA_UPLOAD_STATUS, status);
-        intent.putExtras(uploadInfo);
+        intent.putExtra(Consts.Keys.EXTRA_EXTRAS, (HashMap<String, String>) uploadInfo.getExtras());
         sendBroadcast(intent);
     }
 
