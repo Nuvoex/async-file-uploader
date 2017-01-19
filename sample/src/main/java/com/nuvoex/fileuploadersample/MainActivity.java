@@ -89,10 +89,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void scheduleUpload() {
+        long pid = Math.round(Math.random() * 100000);
+        String uploadId = "10000_SBI_3443_pid_" + String.valueOf(pid) + ".png";
         Map<String, String> extras = new HashMap<>();
         extras.put("awb", "10000");
         UploadInfo info = new UploadInfo()
-                .setUploadId("10000_SBI_3443_pid_344349.png")
+                .setUploadId(uploadId)
                 .setFilePath(mCurrentPhotoPath)
                 .setUploadUrl(UPLOAD_URL)
                 .setDeleteOnUpload(false)

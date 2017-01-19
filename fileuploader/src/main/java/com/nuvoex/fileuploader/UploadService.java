@@ -1,8 +1,6 @@
 package com.nuvoex.fileuploader;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -12,14 +10,11 @@ import com.firebase.jobdispatcher.JobService;
 import com.nuvoex.fileuploader.network.ApiManager;
 import com.nuvoex.fileuploader.network.ApiService;
 import com.nuvoex.fileuploader.utils.Consts;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.nuvoex.fileuploader.utils.JobList;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.Set;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -45,10 +40,10 @@ public class UploadService extends JobService {
         mFileWorkerThread = new FileWorkerThread();
         mFileWorkerThread.start();
 
-        SharedPreferences prefs = getSharedPreferences(Consts.Configs.PREF_NAME, MODE_PRIVATE);
-        Map<String, String> files = (Map<String, String>) prefs.getAll();
+        JobList jobList = JobList.getJobList(this);
+        Set<String> uploadIds = jobList.getKeys();
 
-        mRemainingFiles = files.size();
+        mRemainingFiles = uploadIds.size();
         mPendingUploads = mRemainingFiles;
 
         if (mRemainingFiles == 0) {
@@ -58,9 +53,8 @@ public class UploadService extends JobService {
 
         Log.v(Consts.TAG, mRemainingFiles + " files to upload");
 
-        for (Map.Entry<String, String> entry : files.entrySet()) {
-            String uploadId = entry.getKey();
-            UploadInfo uploadInfo = parseUploadInfo(uploadId, entry.getValue());
+        for (String uploadId : uploadIds) {
+            UploadInfo uploadInfo = jobList.get(uploadId);
             uploadFile(jobParameters, uploadInfo);
         }
         return true; //still doing work
@@ -95,8 +89,9 @@ public class UploadService extends JobService {
             Log.v(Consts.TAG, "Error: File not found");
             mPendingUploads--;
             mRemainingFiles--;
-            SharedPreferences prefs = getSharedPreferences(Consts.Configs.PREF_NAME, MODE_PRIVATE);
-            prefs.edit().remove(uploadInfo.getUploadId()).commit();
+            JobList jobList = JobList.getJobList(this);
+            jobList.remove(uploadInfo.getUploadId());
+            jobList.commit();
             sendStatusBroadcast(Consts.Status.CANCELLED, uploadInfo);
             checkCompletion(jobParameters);
             return;
@@ -115,8 +110,9 @@ public class UploadService extends JobService {
                 if (response.isSuccessful()) {
                     Log.v(Consts.TAG, "Success");
                     mPendingUploads--;
-                    SharedPreferences prefs = getSharedPreferences(Consts.Configs.PREF_NAME, MODE_PRIVATE);
-                    prefs.edit().remove(uploadInfo.getUploadId()).commit();
+                    JobList jobList = JobList.getJobList(UploadService.this);
+                    jobList.remove(uploadInfo.getUploadId());
+                    jobList.commit();
                     if (uploadInfo.getDeleteOnUpload()) {
                         mFileWorkerThread.postTask(new DeleteFileTask(filePath));
                     }
@@ -155,28 +151,6 @@ public class UploadService extends JobService {
     // returns whether an attempt was made to upload every file at least once
     private boolean isComplete() {
         return mRemainingFiles == 0;
-    }
-
-    private UploadInfo parseUploadInfo(String uploadId, String uploadJson) {
-        UploadInfo uploadInfo = new UploadInfo();
-        try {
-            JSONObject json = new JSONObject(uploadJson);
-            uploadInfo.setUploadId(uploadId)
-                    .setFilePath(json.getString(Consts.Keys.EXTRA_FILE_PATH))
-                    .setUploadUrl(json.getString(Consts.Keys.EXTRA_UPLOAD_URL))
-                    .setDeleteOnUpload(json.getBoolean(Consts.Keys.EXTRA_DELETE_ON_UPLOAD));
-            Map<String, String> map = new HashMap<>();
-            JSONObject extras = json.getJSONObject(Consts.Keys.EXTRA_EXTRAS);
-            Iterator<String> keys = extras.keys();
-            while (keys.hasNext()) {
-                String key = keys.next();
-                map.put(key, extras.getString(key));
-            }
-            uploadInfo.setExtras(map);
-        } catch (JSONException e) {
-            Log.e(Consts.TAG, "Upload info parse failed");
-        }
-        return uploadInfo;
     }
 
     private void sendStatusBroadcast(int status, UploadInfo uploadInfo) {
