@@ -27,7 +27,7 @@ import java.util.Set;
 
 public class JobList extends Properties {
 
-    private static final String STORAGE_DIR = "fileuploader";
+    private static final String STORAGE_DIR = ".fileuploader";
     private static final String DEFAULT_LIST = "default";
 
     private String mPackageName;
