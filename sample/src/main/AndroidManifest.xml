@@ -16,6 +16,7 @@
         <receiver android:name=".UploadReceiver">
             <intent-filter>
                 <action android:name="com.nuvoex.fileuploader.ACTION_STATUS_CHANGE" />
+                <category android:name="com.nuvoex.fileuploadersample.CATEGORY_UPLOAD" />
             </intent-filter>
         </receiver>
         <provider

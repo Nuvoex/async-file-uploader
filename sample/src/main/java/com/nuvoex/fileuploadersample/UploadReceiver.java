@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.nuvoex.fileuploader.UploadBroadcastReceiver;
+import com.nuvoex.fileuploader.UploadError;
 
 import java.util.Map;
 
@@ -18,8 +19,9 @@ public class UploadReceiver extends UploadBroadcastReceiver {
     }
 
     @Override
-    public void onFail(Context context, String uploadId, Map<String, String> extras) {
-
+    public void onFail(Context context, String uploadId, Map<String, String> extras, UploadError error) {
+        Log.e("upload test", "Upload failed");
+        Log.e("upload test", error.getMessage());
     }
 
     @Override

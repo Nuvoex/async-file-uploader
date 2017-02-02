@@ -29,7 +29,7 @@ public abstract class UploadBroadcastReceiver extends BroadcastReceiver {
                 onStart(context, uploadId, extras);
                 break;
             case Consts.Status.FAILED:
-                onFail(context, uploadId, extras);
+                onFail(context, uploadId, extras, (UploadError) intent.getSerializableExtra(Consts.Keys.EXTRA_UPLOAD_ERROR));
                 break;
             case Consts.Status.COMPLETED:
                 onComplete(context, uploadId, extras);
@@ -42,7 +42,7 @@ public abstract class UploadBroadcastReceiver extends BroadcastReceiver {
 
     public abstract void onStart(Context context, String uploadId, Map<String, String> extras);
 
-    public abstract void onFail(Context context, String uploadId, Map<String, String> extras);
+    public abstract void onFail(Context context, String uploadId, Map<String, String> extras, UploadError error);
 
     public abstract void onComplete(Context context, String uploadId, Map<String, String> extras);
 
