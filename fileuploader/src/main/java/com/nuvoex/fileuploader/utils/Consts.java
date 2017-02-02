@@ -21,6 +21,7 @@ public class Consts {
         public static final String EXTRA_DELETE_ON_UPLOAD = "com.nuvoex.fileuploader.DELETE_ON_UPLOAD";
         public static final String EXTRA_EXTRAS = "com.nuvoex.fileuploader.EXTRAS";
         public static final String EXTRA_UPLOAD_STATUS = "com.nuvoex.fileuploader.FILE_UPLOAD_STATUS";
+        public static final String EXTRA_UPLOAD_ERROR = "com.nuvoex.fileuploader.FILE_UPLOAD_ERROR";
     }
 
     public final class Actions {

@@ -119,6 +119,8 @@ public class UploadService extends JobService {
                     sendStatusBroadcast(Consts.Status.COMPLETED, uploadInfo);
                 } else {
                     Log.v(Consts.TAG, "Failure");
+                    UploadError uploadError = new UploadError(UploadError.ERROR_RESPONSE, response.code(), response.message());
+                    sendStatusBroadcast(Consts.Status.FAILED, uploadInfo, uploadError);
                 }
                 mRemainingFiles--;
                 checkCompletion(jobParameters);
@@ -129,7 +131,8 @@ public class UploadService extends JobService {
                 Log.v(Consts.TAG, filePath);
                 Log.v(Consts.TAG, "Error");
                 Log.v(Consts.TAG, t.toString());
-                sendStatusBroadcast(Consts.Status.FAILED, uploadInfo);
+                UploadError uploadError = new UploadError(UploadError.ERROR_NETWORK, 0, t.getLocalizedMessage());
+                sendStatusBroadcast(Consts.Status.FAILED, uploadInfo, uploadError);
                 mRemainingFiles--;
                 checkCompletion(jobParameters);
             }
@@ -154,9 +157,15 @@ public class UploadService extends JobService {
     }
 
     private void sendStatusBroadcast(int status, UploadInfo uploadInfo) {
+        sendStatusBroadcast(status, uploadInfo, null);
+    }
+
+    private void sendStatusBroadcast(int status, UploadInfo uploadInfo, UploadError uploadError) {
         Intent intent = new Intent(Consts.Actions.STATUS_CHANGE);
+        intent.addCategory(getPackageName() + ".CATEGORY_UPLOAD");
         intent.putExtra(Intent.EXTRA_UID, uploadInfo.getUploadId());
         intent.putExtra(Consts.Keys.EXTRA_UPLOAD_STATUS, status);
+        intent.putExtra(Consts.Keys.EXTRA_UPLOAD_ERROR, uploadError);
         intent.putExtra(Consts.Keys.EXTRA_EXTRAS, (HashMap<String, String>) uploadInfo.getExtras());
         sendBroadcast(intent);
     }
