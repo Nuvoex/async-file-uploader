@@ -45,9 +45,9 @@ public class JobList extends Properties {
                 loadFromXML(inputStream);
             }
         } catch (IOException e) {
-            Log.e(Consts.TAG, "Error reading job list", e);
+            Logger.e("Error reading job list", e);
         } catch (NullPointerException e) {
-            Log.e(Consts.TAG, "Error reading job list", e);
+            Logger.e("Error reading job list", e);
         }
     }
 
@@ -69,11 +69,11 @@ public class JobList extends Properties {
             OutputStream outputStream = new FileOutputStream(getStorageFile());
             storeToXML(outputStream, null);
         } catch (IOException e) {
-            Log.e(Consts.TAG, "Error writing job list", e);
+            Logger.e("Error writing job list", e);
         } catch (NullPointerException e) {
-            Log.e(Consts.TAG, "Error writing job list", e);
+            Logger.e("Error writing job list", e);
         } catch (ClassCastException e) {
-            Log.e(Consts.TAG, "Error writing job list", e);
+            Logger.e("Error writing job list", e);
         }
     }
 
@@ -125,7 +125,7 @@ public class JobList extends Properties {
             }
             uploadInfo.setExtras(map);
         } catch (JSONException e) {
-            Log.e(Consts.TAG, "Upload info parse failed");
+            Logger.e("Upload info parse failed");
         }
         return uploadInfo;
     }

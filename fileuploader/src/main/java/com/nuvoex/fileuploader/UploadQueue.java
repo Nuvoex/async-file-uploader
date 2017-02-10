@@ -12,6 +12,7 @@ import com.firebase.jobdispatcher.Lifetime;
 import com.firebase.jobdispatcher.Trigger;
 import com.nuvoex.fileuploader.utils.Consts;
 import com.nuvoex.fileuploader.utils.JobList;
+import com.nuvoex.fileuploader.utils.Logger;
 
 import java.util.HashMap;
 
@@ -22,6 +23,7 @@ import java.util.HashMap;
 public class UploadQueue {
 
     private static FirebaseJobDispatcher dispatcher;
+    private static int logLevel = Integer.MAX_VALUE;
 
     public static FirebaseJobDispatcher getDispatcher(Context context) {
         if (dispatcher == null) {
@@ -29,6 +31,14 @@ public class UploadQueue {
             dispatcher = new FirebaseJobDispatcher(driver);
         }
         return dispatcher;
+    }
+
+    public static void setLogLevel(int level) {
+        logLevel = level;
+    }
+
+    public static int getLogLevel() {
+        return logLevel;
     }
 
     public static boolean schedule(Context context, UploadInfo uploadInfo) {
@@ -67,10 +77,10 @@ public class UploadQueue {
                 .build();
         int result = dispatcher.schedule(job);
         if (result == FirebaseJobDispatcher.SCHEDULE_RESULT_SUCCESS) {
-            Log.v(Consts.TAG, "Job scheduled");
+            Logger.v("Job scheduled");
             return true;
         } else {
-            Log.v(Consts.TAG, "Job not scheduled");
+            Logger.v("Job not scheduled");
             return false;
         }
     }

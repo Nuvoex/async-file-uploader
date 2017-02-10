@@ -11,6 +11,7 @@ import com.nuvoex.fileuploader.network.ApiManager;
 import com.nuvoex.fileuploader.network.ApiService;
 import com.nuvoex.fileuploader.utils.Consts;
 import com.nuvoex.fileuploader.utils.JobList;
+import com.nuvoex.fileuploader.utils.Logger;
 
 import java.io.File;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class UploadService extends JobService {
 
     @Override
     public boolean onStartJob(JobParameters jobParameters) {
-        Log.v(Consts.TAG, "Job started");
+        Logger.v("Job started");
 
         mFileWorkerThread = new FileWorkerThread();
         mFileWorkerThread.start();
@@ -47,11 +48,11 @@ public class UploadService extends JobService {
         mPendingUploads = mRemainingFiles;
 
         if (mRemainingFiles == 0) {
-            Log.v(Consts.TAG, "Nothing to upload");
+            Logger.v("Nothing to upload");
             return false; //nothing to upload, all done
         }
 
-        Log.v(Consts.TAG, mRemainingFiles + " files to upload");
+        Logger.v(mRemainingFiles + " files to upload");
 
         for (String uploadId : uploadIds) {
             UploadInfo uploadInfo = jobList.get(uploadId);
@@ -63,7 +64,7 @@ public class UploadService extends JobService {
     @Override
     public boolean onStopJob(JobParameters jobParameters) {
         boolean needsReschedule = (mPendingUploads > 0);
-        Log.v(Consts.TAG, "Job stopped. Needs reschedule: " + needsReschedule);
+        Logger.v("Job stopped. Needs reschedule: " + needsReschedule);
         return needsReschedule;
     }
 
@@ -83,10 +84,10 @@ public class UploadService extends JobService {
         final String uploadUrl = uploadInfo.getUploadUrl();
 
         File file = new File(filePath);
-        Log.v(Consts.TAG, "Uploading " + filePath + " (" + file.length() + " bytes)");
+        Logger.v("Uploading " + filePath + " (" + file.length() + " bytes)");
 
         if (!file.exists()) {
-            Log.v(Consts.TAG, "Error: File not found");
+            Logger.v("Error: File not found");
             mPendingUploads--;
             mRemainingFiles--;
             JobList jobList = JobList.getJobList(this);
@@ -104,11 +105,11 @@ public class UploadService extends JobService {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.v(Consts.TAG, filePath);
-                Log.v(Consts.TAG, uploadUrl);
-                Log.v(Consts.TAG, "Status: " + response.code());
+                Logger.v(filePath);
+                Logger.v(uploadUrl);
+                Logger.v("Status: " + response.code());
                 if (response.isSuccessful()) {
-                    Log.v(Consts.TAG, "Success");
+                    Logger.v("Success");
                     mPendingUploads--;
                     JobList jobList = JobList.getJobList(UploadService.this);
                     jobList.remove(uploadInfo.getUploadId());
@@ -118,7 +119,7 @@ public class UploadService extends JobService {
                     }
                     sendStatusBroadcast(Consts.Status.COMPLETED, uploadInfo);
                 } else {
-                    Log.v(Consts.TAG, "Failure");
+                    Logger.v("Failure");
                     UploadError uploadError = new UploadError(UploadError.ERROR_RESPONSE, response.code(), response.message());
                     sendStatusBroadcast(Consts.Status.FAILED, uploadInfo, uploadError);
                 }
@@ -128,9 +129,9 @@ public class UploadService extends JobService {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.v(Consts.TAG, filePath);
-                Log.v(Consts.TAG, "Error");
-                Log.v(Consts.TAG, t.toString());
+                Logger.v(filePath);
+                Logger.v("Error");
+                Logger.v(t.toString());
                 UploadError uploadError = new UploadError(UploadError.ERROR_NETWORK, 0, t.getLocalizedMessage());
                 sendStatusBroadcast(Consts.Status.FAILED, uploadInfo, uploadError);
                 mRemainingFiles--;
@@ -147,7 +148,7 @@ public class UploadService extends JobService {
 
         //  if any upload is not successful, reschedule job for remaining files
         boolean needsReschedule = (mPendingUploads > 0);
-        Log.v(Consts.TAG, "Job finished. Pending files: " + mPendingUploads);
+        Logger.v("Job finished. Pending files: " + mPendingUploads);
         jobFinished(jobParameters, needsReschedule);
     }
 
@@ -184,7 +185,7 @@ public class UploadService extends JobService {
             File parentFolder = file.getParentFile();
             //If file delete is successful
             if (file.delete()) {
-                Log.v(Consts.TAG, "File " + file.getName() + " is deleted!");
+                Logger.v("File " + file.getName() + " is deleted!");
                 //if the folder is empty, then delete it
                 if (parentFolder.list().length == 0) {
                     //Delete the folder
