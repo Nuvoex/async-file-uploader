@@ -11,6 +11,7 @@ import android.view.View;
 
 import com.nuvoex.fileuploader.UploadInfo;
 import com.nuvoex.fileuploader.UploadQueue;
+import com.nuvoex.fileuploader.utils.Constants;
 
 import java.io.File;
 import java.io.IOException;

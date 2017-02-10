@@ -1,6 +1,6 @@
 package com.nuvoex.fileuploader.network;
 
-import com.nuvoex.fileuploader.utils.Consts;
+import com.nuvoex.fileuploader.utils.Constants;
 
 import java.util.concurrent.TimeUnit;
 
@@ -19,11 +19,11 @@ public class ApiManager {
     private synchronized static Retrofit getClient() {
         if (retrofit == null) {
             OkHttpClient client = new OkHttpClient.Builder()
-                    .readTimeout(Consts.Configs.TIMEOUT, TimeUnit.SECONDS)
-                    .connectTimeout(Consts.Configs.TIMEOUT, TimeUnit.SECONDS)
+                    .readTimeout(Constants.Configs.TIMEOUT, TimeUnit.SECONDS)
+                    .connectTimeout(Constants.Configs.TIMEOUT, TimeUnit.SECONDS)
                     .build();
             retrofit = new Retrofit.Builder()
-                    .baseUrl(Consts.Urls.BASE_URL)
+                    .baseUrl(Constants.Urls.BASE_URL)
                     .client(client)
                     .build();
         }

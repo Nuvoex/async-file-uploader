@@ -3,13 +3,12 @@ package com.nuvoex.fileuploader;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.util.Log;
 
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
 import com.nuvoex.fileuploader.network.ApiManager;
 import com.nuvoex.fileuploader.network.ApiService;
-import com.nuvoex.fileuploader.utils.Consts;
+import com.nuvoex.fileuploader.utils.Constants;
 import com.nuvoex.fileuploader.utils.JobList;
 import com.nuvoex.fileuploader.utils.Logger;
 
@@ -28,12 +27,20 @@ import retrofit2.Response;
  * Created by dilip on 04/01/17.
  */
 
+/**
+ * Service that uploads files in the background and sends updates using broadcasts.
+ */
 public class UploadService extends JobService {
 
     private int mRemainingFiles = 0;
     private int mPendingUploads = 0;
     private FileWorkerThread mFileWorkerThread;
 
+    /**
+     * Called when the upload job starts.
+     * @param jobParameters
+     * @return {@code true} if there are files to upload, {@code false} otherwise.
+     */
     @Override
     public boolean onStartJob(JobParameters jobParameters) {
         Logger.v("Job started");
@@ -61,6 +68,11 @@ public class UploadService extends JobService {
         return true; //still doing work
     }
 
+    /**
+     * Called when the job has been interrupted.
+     * @param jobParameters
+     * @return {@code true} if there are more files to be uploaded, {@code false} otherwise.
+     */
     @Override
     public boolean onStopJob(JobParameters jobParameters) {
         boolean needsReschedule = (mPendingUploads > 0);
@@ -93,7 +105,7 @@ public class UploadService extends JobService {
             JobList jobList = JobList.getJobList(this);
             jobList.remove(uploadInfo.getUploadId());
             jobList.commit();
-            sendStatusBroadcast(Consts.Status.CANCELLED, uploadInfo);
+            sendStatusBroadcast(Constants.Status.CANCELLED, uploadInfo);
             checkCompletion(jobParameters);
             return;
         }
@@ -117,11 +129,11 @@ public class UploadService extends JobService {
                     if (uploadInfo.getDeleteOnUpload()) {
                         mFileWorkerThread.postTask(new DeleteFileTask(filePath));
                     }
-                    sendStatusBroadcast(Consts.Status.COMPLETED, uploadInfo);
+                    sendStatusBroadcast(Constants.Status.COMPLETED, uploadInfo);
                 } else {
                     Logger.v("Failure");
                     UploadError uploadError = new UploadError(UploadError.ERROR_RESPONSE, response.code(), response.message());
-                    sendStatusBroadcast(Consts.Status.FAILED, uploadInfo, uploadError);
+                    sendStatusBroadcast(Constants.Status.FAILED, uploadInfo, uploadError);
                 }
                 mRemainingFiles--;
                 checkCompletion(jobParameters);
@@ -133,14 +145,19 @@ public class UploadService extends JobService {
                 Logger.v("Error");
                 Logger.v(t.toString());
                 UploadError uploadError = new UploadError(UploadError.ERROR_NETWORK, 0, t.getLocalizedMessage());
-                sendStatusBroadcast(Consts.Status.FAILED, uploadInfo, uploadError);
+                sendStatusBroadcast(Constants.Status.FAILED, uploadInfo, uploadError);
                 mRemainingFiles--;
                 checkCompletion(jobParameters);
             }
         });
-        sendStatusBroadcast(Consts.Status.STARTED, uploadInfo);
+        sendStatusBroadcast(Constants.Status.STARTED, uploadInfo);
     }
 
+    /**
+     * Decides whether the job can be stopped, and whether it needs to be rescheduled in case of
+     * pending file uploads.
+     * @param jobParameters
+     */
     private void checkCompletion(JobParameters jobParameters) {
         if (!isComplete()) {
             return;
@@ -162,12 +179,12 @@ public class UploadService extends JobService {
     }
 
     private void sendStatusBroadcast(int status, UploadInfo uploadInfo, UploadError uploadError) {
-        Intent intent = new Intent(Consts.Actions.STATUS_CHANGE);
+        Intent intent = new Intent(Constants.Actions.STATUS_CHANGE);
         intent.addCategory(getPackageName() + ".CATEGORY_UPLOAD");
         intent.putExtra(Intent.EXTRA_UID, uploadInfo.getUploadId());
-        intent.putExtra(Consts.Keys.EXTRA_UPLOAD_STATUS, status);
-        intent.putExtra(Consts.Keys.EXTRA_UPLOAD_ERROR, uploadError);
-        intent.putExtra(Consts.Keys.EXTRA_EXTRAS, (HashMap<String, String>) uploadInfo.getExtras());
+        intent.putExtra(Constants.Keys.EXTRA_UPLOAD_STATUS, status);
+        intent.putExtra(Constants.Keys.EXTRA_UPLOAD_ERROR, uploadError);
+        intent.putExtra(Constants.Keys.EXTRA_EXTRAS, (HashMap<String, String>) uploadInfo.getExtras());
         sendBroadcast(intent);
     }
 
@@ -195,6 +212,9 @@ public class UploadService extends JobService {
         }
     }
 
+    /**
+     * This {@link HandlerThread} takes care of deleting files asynchronously.
+     */
     private class FileWorkerThread extends HandlerThread {
 
         private Handler mWorkerHandler;
