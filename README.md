@@ -1,6 +1,6 @@
 # Async File Uploader
 
-[![](https://jitpack.io/v/Nuvoex/fileuploader.svg)](https://jitpack.io/#Nuvoex/fileuploader)
+[![Download](https://api.bintray.com/packages/dilipvinu/maven/async-file-uploader/images/download.svg) ](https://bintray.com/dilipvinu/maven/async-file-uploader/_latestVersion)
 
 Async File Uploader is an Android library for uploading files in the background.
 
