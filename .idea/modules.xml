@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/FileUploader.iml" filepath="$PROJECT_DIR$/FileUploader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/async-file-uploader.iml" filepath="$PROJECT_DIR$/async-file-uploader.iml" />
       <module fileurl="file://$PROJECT_DIR$/fileuploader/fileuploader.iml" filepath="$PROJECT_DIR$/fileuploader/fileuploader.iml" />
       <module fileurl="file://$PROJECT_DIR$/sample/sample.iml" filepath="$PROJECT_DIR$/sample/sample.iml" />
     </modules>
