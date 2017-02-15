@@ -16,7 +16,7 @@ Check out the sample application in `sample/` to see it in action.
 
 Documentaion
 ----
-Visit http://nuvoex.com/fileuploader for complete API documentation.
+Visit http://nuvoex.com/async-file-uploader for complete API documentation.
  
 License
 ----
