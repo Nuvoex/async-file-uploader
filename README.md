@@ -1,6 +1,6 @@
 # Async File Uploader
 
-[![CircleCI](https://circleci.com/gh/Nuvoex/async-file-uploader.svg?style=svg)](https://circleci.com/gh/Nuvoex/async-file-uploader) [![Download](https://api.bintray.com/packages/dilipvinu/maven/async-file-uploader/images/download.svg) ](https://bintray.com/dilipvinu/maven/async-file-uploader/_latestVersion)
+[![CircleCI](https://img.shields.io/circleci/project/github/Nuvoex/async-file-uploader.svg)](https://circleci.com/gh/Nuvoex/async-file-uploader) [![Download](https://api.bintray.com/packages/dilipvinu/maven/async-file-uploader/images/download.svg) ](https://bintray.com/dilipvinu/maven/async-file-uploader/_latestVersion)
 
 Async File Uploader is an Android library for uploading files in the background.
 
