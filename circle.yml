@@ -1,0 +1,3 @@
+checkout:
+  post:
+    - cp local.properties.ci local.properties
