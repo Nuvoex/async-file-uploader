@@ -62,7 +62,7 @@ Implement the methods in the `UploadBroadcastReceiver` for the events you wish t
 
 Check out the sample application in `sample/` to see it in action.
 
-Documentaion
+Documentation
 ------------
 Visit http://nuvoex.com/async-file-uploader for complete API documentation.
 
@@ -71,6 +71,12 @@ Download
 ```
 compile 'com.nuvoex:fileuploader:1.0.3'
 ```
+
+Marshmallow permissions
+-----------------------
+On Android API level 23 (Marshmallow) and above, apps must have `android.permission.WRITE_EXTERNAL_STORAGE` 
+permission granted for the library to work. Otherwise uploads will fail silently.
+
 License
 -------
 
